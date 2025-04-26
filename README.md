@@ -32,18 +32,87 @@ Chose on the basis of popularity and daily updates.
 • Feedparser, BeautifulSoup, html, re, emoji : Clean Text Parising  
 • PostgreSQL : Persistent Storage(Marks and Checks Already Processed)  
 
-## File Structuring
-
-substack/  
-  utils/ # Utility folder for modules  
-      __init__.py # Package initialization  
-      db.py # Database utility  
-      kafka_producer.py # Kafka producer utility  
-      llm_analyzer.py # LLM analyzer utility  
-      rss_fetcher.py # RSS fetcher utility  
-  docker-compose.yml # Docker Compose configuration file  
-  main.py # Main entry point of the application  
-  pipeline.py # Defines the pipeline logic  
-  requirements.txt # Python dependencies  
-
 ## Pipeline Implementation
+![Project Architecture](Substack.png)
+## Detailed Workflow
+
+### 1. Detection Strategy
+Every time RSS feeds are fetched:
+- Parse each post’s URL.
+- Compare the post URL against URLs stored in a PostgreSQL database.
+- Only **new posts** (newer than the last stored) are sent for processing.
+
+**Outcome:** Duplication is avoided and incremental updates are ensured.
+
+
+
+### 2. Extraction Approach
+
+**Source:**
+- RSS feeds from two Substack sites:
+  - [Robert Reich’s Substack](https://robertreich.substack.com/feed)
+  - [Public Notice](https://www.publicnotice.co/feed)
+
+**Libraries Used:**
+- `feedparser` for parsing RSS XML.
+- `BeautifulSoup` for HTML content extraction.
+- `re`, `html`, `emoji` libraries for content cleaning.
+
+**Parsing Logic:**
+- Extract the following fields:
+  - Post Title
+  - Author Name
+  - Publication Name
+  - Timestamp
+  - Post URL
+  - Post Content (special cleaned extraction from `<content:encoded>`)
+
+**Cleaning Content:**
+- Remove HTML tags, unwanted promotional messages, images, buttons, emojis.
+- Decode HTML entities.
+- Strip non-ASCII characters.
+- Normalize whitespace.
+
+**Result:** Only pure, readable text remains for AI analysis.
+
+
+
+### 3. AI Analysis Method
+
+For each cleaned post content:
+- Call an LLM (mocked).
+- Send the content with a prompt like:
+
+  > "Analyze the following article and return:  
+  > 1. The list of main topics discussed (as keywords).  
+  > 2. The overall sentiment (Positive, Negative, Neutral)."
+
+**Expected Structured Response:**
+
+```json
+{
+  "topics": ["economy", "inflation", "policy"],
+  "sentiment": "Negative"
+}
+```
+In this case, the AI analysis function can simply mock the output based on random
+assignment.  
+### 4. Kafka Message Schema
+Each post after enrichment (content + AI analysis) is published as a JSON message
+to Kafka, in a topic like processed substack articles.
+```json
+{
+"post_title": "Post Title Here",
+"author_name": "Author Name Here",
+"publication_name": "Publication Name Here",
+"timestamp": "2025-04-25T12:00:00+00:00",
+"post_url": "https://example.substack.com/p/post-title",
+"post_content": "Cleaned main text here...",
+"topics": ["topic1", "topic2", "topic3"],
+"sentiment": "Positive"
+}
+```
+### 5. Update Database
+Update database with latest processed timestamp and URL for tracking.
+
+Pipeline finishes cleanly and waits for the next scheduled run.
