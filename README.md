@@ -1,5 +1,18 @@
 # substack_pipeline
 
+## Overview (Screenshots)
+
+<p align="center">
+  <img src="images/plombery_ui.png" width="500" />
+  <img src="images/filter_plombery.png" width="500" />
+  <img src="images/processed.png" width="500" />
+  <img src="images/processed 1.png" width="500" />
+  <img src="images/running_successful.png" width="500" />
+  <img src="images/Screenshot from 2025-04-26 12-50-51.png" width="500" />
+  <img src="images/step1.png" width="500" />
+  <img src="images/database.png" width="500" />
+</p>
+
 ## Introduction
 
 The purpose of this POC is to design and implement a multi-stage data pipeline, encompassing data extraction(and cleaning), enrichment via AI analysis, and publishing. This task
