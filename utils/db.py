@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 def create_connection():
     """Create and return a connection to the PostgreSQL database."""
     conn = psycopg2.connect(
-        dbname='substack',
-        user='stark',
-        password='1018',
+        dbname='database_name',
+        user='username',
+        password='0000',
         host='localhost',
         port='5432'
     )
